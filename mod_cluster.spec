@@ -3,7 +3,7 @@
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
 Version:    1.1.1
-Release:    2%{?dist}
+Release:    3%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
@@ -90,6 +90,9 @@ rm -Rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/*.conf
 
 %changelog
+* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.1.1-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
 * Fri Mar 11 2011 Marek Goldmann <mgoldman@redhat.com> - 1.1.1-2
 - Another round of cleanup in spec file
 - Patch that disables compilation-time warnings
