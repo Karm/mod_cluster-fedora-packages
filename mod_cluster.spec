@@ -1,9 +1,11 @@
+%{!?_httpd_mmn: %{expand: %%global _httpd_mmn %%(cat %{_includedir}/httpd/.mmn || echo missing-httpd-devel)}}
+
 %global release_suffix .Final
 
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
 Version:    1.1.1
-Release:    3%{?dist}
+Release:    4%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
@@ -14,6 +16,7 @@ BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Patch0:     mod_cluster-1.1.1-lesswarnings.patch
 
 Requires:      httpd >= 2.2.8
+Requires:      httpd-mmn = %{_httpd_mmn}
 BuildRequires: httpd-devel >= 2.2.8
 BuildRequires: autoconf
 # BuildRequires: maven3 # Required to build docs
@@ -42,12 +45,18 @@ find srclib -mindepth 1 -maxdepth 1 ! -name mod_cluster -print0|xargs -0 -r rm -
 CFLAGS="$RPM_OPT_FLAGS"
 export CFLAGS
 
+%if 0%{?fedora} >= 18
+apxs_path=/usr/bin/apxs
+%else
+apxs_path=/usr/sbin/apxs
+%endif
+
 module_dirs=( advertise mod_manager mod_proxy_cluster mod_slotmem )
 
 for dir in ${module_dirs[@]} ; do
     pushd srclib/%{name}/native/${dir}
         sh buildconf
-        ./configure --libdir=%{_libdir} --with-apxs=/usr/sbin/apxs
+        ./configure --libdir=%{_libdir} --with-apxs=${apxs_path}
         make %{?_smp_mflags}
     popd
 done
@@ -90,6 +99,9 @@ rm -Rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/*.conf
 
 %changelog
+* Tue Mar 27 2012 Marek Goldmann <mgoldman@redhat.com> - 1.1.1-4
+- Require httpd-mmn RHBZ#803068
+
 * Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.1.1-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
 
