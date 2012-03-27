@@ -1,0 +1,61 @@
+diff -Naur mod_cluster-1.2.0.Final-src-ssl/srclib/mod_cluster/pom.xml mod_cluster-1.2.0.Final-src-ssl-work/srclib/mod_cluster/pom.xml
+--- mod_cluster-1.2.0.Final-src-ssl/srclib/mod_cluster/pom.xml	2012-02-06 12:03:30.000000000 -0500
++++ mod_cluster-1.2.0.Final-src-ssl-work/srclib/mod_cluster/pom.xml	2012-02-11 09:44:40.093999157 -0500
+@@ -32,7 +32,6 @@
+ 
+     <properties>
+         <version.jboss-logging>3.0.1.GA</version.jboss-logging>
+-        <version.tomcat6>6.0.33</version.tomcat6>
+         <version.tomcat7>7.0.8</version.tomcat7>
+         <version.jbossweb>2.1.11.GA</version.jbossweb>
+         <version.jbossweb7>7.0.7.Final</version.jbossweb7>
+@@ -72,17 +71,6 @@
+ 
+             <dependency>
+                 <groupId>org.apache.tomcat</groupId>
+-                <artifactId>catalina</artifactId>
+-                <version>${version.tomcat6}</version>
+-            </dependency>
+-            <dependency>
+-                <groupId>org.apache.tomcat</groupId>
+-                <artifactId>coyote</artifactId>
+-                <version>${version.tomcat6}</version>
+-            </dependency>
+-
+-            <dependency>
+-                <groupId>org.apache.tomcat</groupId>
+                 <artifactId>tomcat-catalina</artifactId>
+                 <version>${version.tomcat7}</version>
+             </dependency>
+@@ -139,11 +127,6 @@
+                 <artifactId>junit</artifactId>
+                 <version>${version.junit}</version>
+             </dependency>
+-            <dependency>
+-                <groupId>org.mockito</groupId>
+-                <artifactId>mockito-core</artifactId>
+-                <version>${version.mockito}</version>
+-            </dependency>
+         </dependencies>
+     </dependencyManagement>
+     <dependencies>
+@@ -152,11 +135,6 @@
+             <artifactId>junit</artifactId>
+             <scope>test</scope>
+         </dependency>
+-        <dependency>
+-            <groupId>org.mockito</groupId>
+-            <artifactId>mockito-core</artifactId>
+-            <scope>test</scope>
+-        </dependency>
+     </dependencies>
+ 
+     <build>
+@@ -206,7 +184,6 @@
+                 <module>container-spi</module>
+                 <module>core</module>
+                 <module>container</module>
+-                <module>demo</module>
+             </modules>
+         </profile>
+         <profile>
