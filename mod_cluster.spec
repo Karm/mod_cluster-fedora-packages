@@ -1,4 +1,8 @@
-%{!?_httpd_mmn: %{expand: %%global _httpd_mmn %%(cat %{_includedir}/httpd/.mmn || echo missing-httpd-devel)}}
+%{!?_httpd_apxs:       %{expand: %%global _httpd_apxs       %%{_sbindir}/apxs}}
+%{!?_httpd_mmn:        %{expand: %%global _httpd_mmn        %%(cat %{_includedir}/httpd/.mmn || echo missing-httpd-devel)}}
+%{!?_httpd_confdir:    %{expand: %%global _httpd_confdir    %%{_sysconfdir}/httpd/conf.d}}
+# /etc/httpd/conf.d with httpd < 2.4 and defined as /etc/httpd/conf.modules.d with httpd >= 2.4
+%{!?_httpd_modconfdir: %{expand: %%global _httpd_modconfdir %%{_sysconfdir}/httpd/conf.d}}
 
 %global release_suffix .Final
 
@@ -45,18 +49,12 @@ find srclib -mindepth 1 -maxdepth 1 ! -name mod_cluster -print0|xargs -0 -r rm -
 CFLAGS="$RPM_OPT_FLAGS"
 export CFLAGS
 
-%if 0%{?fedora} >= 18
-apxs_path=/usr/bin/apxs
-%else
-apxs_path=/usr/sbin/apxs
-%endif
-
 module_dirs=( advertise mod_manager mod_proxy_cluster mod_slotmem )
 
 for dir in ${module_dirs[@]} ; do
     pushd srclib/%{name}/native/${dir}
         sh buildconf
-        ./configure --libdir=%{_libdir} --with-apxs=${apxs_path}
+        ./configure --libdir=%{_libdir} --with-apxs=%{_httpd_apxs}
         make %{?_smp_mflags}
     popd
 done
