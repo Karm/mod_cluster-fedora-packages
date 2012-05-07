@@ -9,26 +9,27 @@
 
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
-Version:    1.2.0
+Version:    1.2.1
 Release:    1%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
 
-# wget http://downloads.jboss.org/mod_cluster/1.2.0.Final/mod_cluster-1.2.0.Final-src-ssl.tar.gz
-# tar -xf mod_cluster-1.2.0.Final-src-ssl.tar.gz
-# find mod_cluster-1.2.0.Final-src-ssl/srclib -mindepth 1 -maxdepth 1 ! -name mod_cluster -print0|xargs -0 -r rm -rf
-# tar cafJ mod_cluster-1.2.0.Final-src-ssl-CLEAN.tar.xz mod_cluster-1.2.0.Final-src-ssl
-Source:     mod_cluster-%{namedversion}-src-ssl-CLEAN.tar.xz
+# svn export http://anonsvn.jboss.org/repos/mod_cluster/tags/1.2.1.Final/ mod_cluster-1.2.1.Final
+# tar cafJ mod_cluster-1.2.1.Final.tar.xz mod_cluster-1.2.1.Final
+Source:     mod_cluster-%{namedversion}.tar.xz
+
 Source1:    mod_cluster.conf
 Source2:    README.fedora
 
-Patch0:     %{name}-%{version}%{namedreltag}-src-ssl-pom.patch
+Patch0:     mod_cluster-%{namedversion}-pom.patch
 
 Requires:      httpd >= 2.2.8
 Requires:      httpd-mmn = %{_httpd_mmn}
 
 BuildRequires: maven
+BuildRequires: maven-enforcer-plugin
+BuildRequires: jboss-parent
 BuildRequires: jpackage-utils
 BuildRequires: java-devel
 BuildRequires: jcip-annotations
@@ -72,7 +73,7 @@ Requires:         jpackage-utils
 This package contains the API documentation for %{name}.
 
 %prep
-%setup -q -n %{name}-%{version}%{namedreltag}-src-ssl
+%setup -q -n mod_cluster-%{namedversion}
 %patch0 -p1
 
 %build
@@ -82,18 +83,16 @@ export CFLAGS
 module_dirs=( advertise mod_manager mod_proxy_cluster mod_slotmem )
 
 for dir in ${module_dirs[@]} ; do
-    pushd srclib/%{name}/native/${dir}
+    pushd native/${dir}
         sh buildconf
         ./configure --libdir=%{_libdir} --with-apxs=%{_httpd_apxs}
         make %{?_smp_mflags}
     popd
 done
 
-pushd srclib/%{name}
 # Build the AS7 required libs
 # Tests skipped because of lack of mockito library
 mvn-rpmbuild -Dmaven.test.skip=true -P AS7 install javadoc:aggregate
-popd
 
 %install
 install -d -m 755 $RPM_BUILD_ROOT%{_libdir}/httpd/modules
@@ -105,7 +104,7 @@ install -d -m 755 $RPM_BUILD_ROOT%{_mavenpomdir}
 module_dirs=( advertise mod_manager mod_proxy_cluster mod_slotmem )
 
 for dir in ${module_dirs[@]} ; do
-    pushd srclib/%{name}/native/${dir}
+    pushd native/${dir}
         cp ./*.so $RPM_BUILD_ROOT%{_libdir}/httpd/modules
     popd
 done
@@ -113,10 +112,6 @@ done
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/etc/httpd/conf.d/
 
 install -m 0644 %{SOURCE2} README
-
-cp -a srclib/mod_cluster/lgpl.txt .
-
-pushd srclib/mod_cluster
 
 # JAR
 cp -p core/target/mod_cluster-core-%{namedversion}.jar $RPM_BUILD_ROOT%{_javadir}/%{name}/core.jar
@@ -141,10 +136,7 @@ install -pm 644 container/jbossweb/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{
 %add_maven_depmap JPP.%{name}-container-jbossweb.pom %{name}/container-jbossweb.jar
 %add_maven_depmap JPP.%{name}-container-catalina.pom %{name}/container-catalina.jar
 
-popd
-
 %files
-%defattr(-,root,root)
 %doc README
 %doc lgpl.txt
 %{_libdir}/httpd/modules/mod_advertise.so
@@ -164,6 +156,10 @@ popd
 %doc lgpl.txt
 
 %changelog
+* Mon May 07 2012 Marek Goldmann <mgoldman@redhat.com> - 1.2.1-1
+- Upstream release 1.2.1.Final
+- Port to httpd 2.4, RHBZ#813871
+
 * Wed Mar 28 2012 Marek Goldmann <mgoldman@redhat.com> - 1.2.0-1
 - Upstream release 1.2.0.Final
 - Add java subpackage with AS7 required jars
