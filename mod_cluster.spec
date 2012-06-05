@@ -10,7 +10,7 @@
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
 Version:    1.2.1
-Release:    1%{?dist}
+Release:    2%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
@@ -125,6 +125,7 @@ cp -rp target/site/apidocs/* $RPM_BUILD_ROOT%{_javadocdir}/%{name}
 # POM
 install -pm 644 pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-parent.pom
 install -pm 644 core/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-core.pom
+install -pm 644 container/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-container.pom
 install -pm 644 container-spi/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-container-spi.pom
 install -pm 644 container/catalina/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-container-catalina.pom
 install -pm 644 container/jbossweb/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-container-jbossweb.pom
@@ -133,6 +134,7 @@ install -pm 644 container/jbossweb/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{
 %add_maven_depmap JPP.%{name}-parent.pom
 %add_maven_depmap JPP.%{name}-core.pom %{name}/core.jar
 %add_maven_depmap JPP.%{name}-container-spi.pom %{name}/container-spi.jar
+%add_maven_depmap JPP.%{name}-container.pom
 %add_maven_depmap JPP.%{name}-container-jbossweb.pom %{name}/container-jbossweb.jar
 %add_maven_depmap JPP.%{name}-container-catalina.pom %{name}/container-catalina.jar
 
@@ -156,6 +158,9 @@ install -pm 644 container/jbossweb/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{
 %doc lgpl.txt
 
 %changelog
+* Tue Jun 05 2012 Marek Goldmann <mgoldman@redhat.com> - 1.2.1-2
+- Added missing container.pom
+
 * Mon May 07 2012 Marek Goldmann <mgoldman@redhat.com> - 1.2.1-1
 - Upstream release 1.2.1.Final
 - Port to httpd 2.4, RHBZ#813871
