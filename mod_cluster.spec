@@ -10,7 +10,7 @@
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
 Version:    1.2.1
-Release:    2%{?dist}
+Release:    3%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
@@ -158,6 +158,9 @@ install -pm 644 container/jbossweb/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{
 %doc lgpl.txt
 
 %changelog
+* Fri Jul 20 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.1-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
 * Tue Jun 05 2012 Marek Goldmann <mgoldman@redhat.com> - 1.2.1-2
 - Added missing container.pom
 
