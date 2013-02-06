@@ -10,7 +10,7 @@
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
 Version:    1.2.1
-Release:    3%{?dist}
+Release:    4%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
@@ -27,7 +27,7 @@ Patch0:     mod_cluster-%{namedversion}-pom.patch
 Requires:      httpd >= 2.2.8
 Requires:      httpd-mmn = %{_httpd_mmn}
 
-BuildRequires: maven
+BuildRequires: maven-local
 BuildRequires: maven-enforcer-plugin
 BuildRequires: jboss-parent
 BuildRequires: jpackage-utils
@@ -158,6 +158,10 @@ install -pm 644 container/jbossweb/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{
 %doc lgpl.txt
 
 %changelog
+* Wed Feb 06 2013 Java SIG <java-devel@lists.fedoraproject.org> - 1.2.1-4
+- Update for https://fedoraproject.org/wiki/Fedora_19_Maven_Rebuild
+- Replace maven BuildRequires with maven-local
+
 * Fri Jul 20 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.1-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
 
