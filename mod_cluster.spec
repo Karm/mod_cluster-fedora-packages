@@ -9,20 +9,15 @@
 
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
-Version:    1.2.1
-Release:    6%{?dist}
+Version:    1.2.4
+Release:    1%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
 
-# svn export http://anonsvn.jboss.org/repos/mod_cluster/tags/1.2.1.Final/ mod_cluster-1.2.1.Final
-# tar cafJ mod_cluster-1.2.1.Final.tar.xz mod_cluster-1.2.1.Final
-Source:     mod_cluster-%{namedversion}.tar.xz
-
+Source:     https://github.com/modcluster/mod_cluster/archive/%{namedversion}.tar.gz
 Source1:    mod_cluster.conf
 Source2:    README.fedora
-
-Patch0:     mod_cluster-%{namedversion}-pom.patch
 
 Requires:      httpd >= 2.2.8
 Requires:      httpd-mmn = %{_httpd_mmn}
@@ -33,6 +28,7 @@ BuildRequires: jboss-parent
 BuildRequires: jpackage-utils
 BuildRequires: java-devel
 BuildRequires: jcip-annotations
+BuildRequires: jboss-logging-tools
 BuildRequires: jboss-logging
 BuildRequires: jboss-servlet-3.0-api
 BuildRequires: jboss-web
@@ -56,25 +52,20 @@ intelligence and granularity not found in other load balancing solutions.
 %package java
 Summary:          Java bindings for %{name}
 Group:            Development/Libraries
-Requires:         jpackage-utils
-Requires:         jcip-annotations
-Requires:         jboss-logging
-Requires:         jboss-servlet-3.0-api
 
 %description java
 This package contains Java part of %{name}.
 
 %package javadoc
 Summary:          Javadocs for %{name}
-Group:            Documentation
-Requires:         jpackage-utils
 
 %description javadoc
 This package contains the API documentation for %{name}.
 
 %prep
 %setup -q -n mod_cluster-%{namedversion}
-%patch0 -p1
+
+%pom_disable_module demo
 
 %build
 CFLAGS="$RPM_OPT_FLAGS"
@@ -90,16 +81,17 @@ for dir in ${module_dirs[@]} ; do
     popd
 done
 
+%mvn_package "org.jboss.mod_cluster:" java
+
 # Build the AS7 required libs
 # Tests skipped because of lack of mockito library
-mvn-rpmbuild -Dmaven.test.skip=true -P AS7 install javadoc:aggregate
+%mvn_build -f -- -P AS7
 
 %install
 install -d -m 755 $RPM_BUILD_ROOT%{_libdir}/httpd/modules
 install -d -m 755 $RPM_BUILD_ROOT/etc/httpd/conf.d
-install -d -m 755 $RPM_BUILD_ROOT%{_javadir}/%{name}
-install -d -m 755 $RPM_BUILD_ROOT%{_javadocdir}/%{name}
-install -d -m 755 $RPM_BUILD_ROOT%{_mavenpomdir}
+
+%mvn_install
 
 module_dirs=( advertise mod_manager mod_proxy_cluster mod_slotmem )
 
@@ -113,31 +105,6 @@ cp -a %{SOURCE1} $RPM_BUILD_ROOT/etc/httpd/conf.d/
 
 install -m 0644 %{SOURCE2} README
 
-# JAR
-cp -p core/target/mod_cluster-core-%{namedversion}.jar $RPM_BUILD_ROOT%{_javadir}/%{name}/core.jar
-cp -p container/catalina/target/mod_cluster-container-catalina-%{namedversion}.jar $RPM_BUILD_ROOT%{_javadir}/%{name}/container-catalina.jar
-cp -p container/jbossweb/target/mod_cluster-container-jbossweb-%{namedversion}.jar $RPM_BUILD_ROOT%{_javadir}/%{name}/container-jbossweb.jar
-cp -p container-spi/target/mod_cluster-container-spi-%{namedversion}.jar $RPM_BUILD_ROOT%{_javadir}/%{name}/container-spi.jar
-
-# APIDOCS
-cp -rp target/site/apidocs/* $RPM_BUILD_ROOT%{_javadocdir}/%{name}
-
-# POM
-install -pm 644 pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-parent.pom
-install -pm 644 core/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-core.pom
-install -pm 644 container/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-container.pom
-install -pm 644 container-spi/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-container-spi.pom
-install -pm 644 container/catalina/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-container-catalina.pom
-install -pm 644 container/jbossweb/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{name}-container-jbossweb.pom
-
-# DEPMAP
-%add_maven_depmap JPP.%{name}-parent.pom
-%add_maven_depmap JPP.%{name}-core.pom %{name}/core.jar
-%add_maven_depmap JPP.%{name}-container-spi.pom %{name}/container-spi.jar
-%add_maven_depmap JPP.%{name}-container.pom
-%add_maven_depmap JPP.%{name}-container-jbossweb.pom %{name}/container-jbossweb.jar
-%add_maven_depmap JPP.%{name}-container-catalina.pom %{name}/container-catalina.jar
-
 %files
 %doc README
 %doc lgpl.txt
@@ -147,17 +114,16 @@ install -pm 644 container/jbossweb/pom.xml $RPM_BUILD_ROOT%{_mavenpomdir}/JPP.%{
 %{_libdir}/httpd/modules/mod_slotmem.so
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/*.conf
 
-%files javadoc
-%{_javadocdir}/%{name}
+%files javadoc -f .mfiles-javadoc
 %doc lgpl.txt
 
-%files java
-%{_mavenpomdir}/*
-%{_mavendepmapfragdir}/*
-%{_javadir}/*
+%files java -f .mfiles-java
 %doc lgpl.txt
 
 %changelog
+* Mon Aug 05 2013 Marek Goldmann <mgoldman@redhat.com> - 1.2.4-1
+- Upstream release 1.2.4.Final
+
 * Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.1-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
 
