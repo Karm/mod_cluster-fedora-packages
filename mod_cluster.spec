@@ -9,7 +9,7 @@
 
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
-Version:    1.2.4
+Version:    1.2.6
 Release:    1%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
@@ -121,6 +121,10 @@ install -m 0644 %{SOURCE2} README
 %doc lgpl.txt
 
 %changelog
+* Wed Sep 25 2013 Marek Goldmann <mgoldman@redhat.com> - 1.2.6-1
+- Upstream release 1.2.6.Final
+- Support for Apache 2.4 in mod_cluster.conf
+
 * Mon Aug 05 2013 Marek Goldmann <mgoldman@redhat.com> - 1.2.4-1
 - Upstream release 1.2.4.Final
 
