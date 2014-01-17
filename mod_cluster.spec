@@ -7,10 +7,13 @@
 %global namedreltag .Final
 %global namedversion %{version}%{?namedreltag}
 
+# Conditional build, set 0 to disable java support
+%define with_java 1
+
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
 Version:    1.2.6
-Release:    1%{?dist}
+Release:    2%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
@@ -22,6 +25,7 @@ Source2:    README.fedora
 Requires:      httpd >= 2.2.8
 Requires:      httpd-mmn = %{_httpd_mmn}
 
+%if %{with_java}
 BuildRequires: maven-local
 BuildRequires: maven-enforcer-plugin
 BuildRequires: jboss-parent
@@ -32,11 +36,13 @@ BuildRequires: jboss-logging-tools
 BuildRequires: jboss-logging
 BuildRequires: jboss-servlet-3.0-api
 BuildRequires: jboss-web
+BuildRequires: tomcat-lib
+%endif
+
 BuildRequires: httpd-devel >= 2.2.8
 BuildRequires: autoconf
 BuildRequires: make
 BuildRequires: gcc
-BuildRequires: tomcat-lib
 
 %description
 Mod_cluster is an httpd-based load balancer. Like mod_jk and mod_proxy,
@@ -49,6 +55,7 @@ HTTP methods, affectionately called the Mod-Cluster Management Protocol (MCMP).
 This additional feedback channel allows mod_cluster to offer a level of
 intelligence and granularity not found in other load balancing solutions.
 
+%if %{with_java}
 %package java
 Summary:          Java bindings for %{name}
 Group:            Development/Libraries
@@ -61,11 +68,14 @@ Summary:          Javadocs for %{name}
 
 %description javadoc
 This package contains the API documentation for %{name}.
+%endif
 
 %prep
 %setup -q -n mod_cluster-%{namedversion}
 
+%if %{with_java}
 %pom_disable_module demo
+%endif
 
 %build
 CFLAGS="$RPM_OPT_FLAGS"
@@ -81,17 +91,21 @@ for dir in ${module_dirs[@]} ; do
     popd
 done
 
+%if %{with_java}
 %mvn_package "org.jboss.mod_cluster:" java
 
 # Build the AS7 required libs
 # Tests skipped because of lack of mockito library
 %mvn_build -f -- -P AS7
+%endif
 
 %install
 install -d -m 755 $RPM_BUILD_ROOT%{_libdir}/httpd/modules
 install -d -m 755 $RPM_BUILD_ROOT/etc/httpd/conf.d
 
+%if %{with_java}
 %mvn_install
+%endif
 
 module_dirs=( advertise mod_manager mod_proxy_cluster mod_slotmem )
 
@@ -114,13 +128,18 @@ install -m 0644 %{SOURCE2} README
 %{_libdir}/httpd/modules/mod_slotmem.so
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/*.conf
 
+%if %{with_java}
 %files javadoc -f .mfiles-javadoc
 %doc lgpl.txt
 
 %files java -f .mfiles-java
 %doc lgpl.txt
+%endif
 
 %changelog
+* Fri Jan 17 2014 Marek Goldmann <mgoldman@redhat.com> - 1.2.6-2
+- Add support for conditional build that builds only HTTPD module
+
 * Wed Sep 25 2013 Marek Goldmann <mgoldman@redhat.com> - 1.2.6-1
 - Upstream release 1.2.6.Final
 - Support for Apache 2.4 in mod_cluster.conf
