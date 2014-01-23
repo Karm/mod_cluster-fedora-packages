@@ -1,5 +1,5 @@
 %{!?_httpd_apxs:       %{expand: %%global _httpd_apxs       %%{_sbindir}/apxs}}
-%{!?_httpd_mmn:        %{expand: %%global _httpd_mmn        %%(cat %{_includedir}/httpd/.mmn || echo missing-httpd-devel)}}
+%{!?_httpd_mmn:        %{expand: %%global _httpd_mmn        %%(cat %{_includedir}/httpd/.mmn || echo 0-0)}}
 %{!?_httpd_confdir:    %{expand: %%global _httpd_confdir    %%{_sysconfdir}/httpd/conf.d}}
 # /etc/httpd/conf.d with httpd < 2.4 and defined as /etc/httpd/conf.modules.d with httpd >= 2.4
 %{!?_httpd_modconfdir: %{expand: %%global _httpd_modconfdir %%{_sysconfdir}/httpd/conf.d}}
@@ -13,7 +13,7 @@
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
 Version:    1.2.6
-Release:    2%{?dist}
+Release:    3%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
@@ -137,6 +137,9 @@ install -m 0644 %{SOURCE2} README
 %endif
 
 %changelog
+* Thu Jan 23 2014 Joe Orton <jorton@redhat.com> - 1.2.6-3
+- fix _httpd_mmn expansion in absence of httpd-devel
+
 * Fri Jan 17 2014 Marek Goldmann <mgoldman@redhat.com> - 1.2.6-2
 - Add support for conditional build that builds only HTTPD module
 
