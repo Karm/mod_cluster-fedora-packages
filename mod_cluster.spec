@@ -13,7 +13,7 @@
 Summary:    Apache HTTP load balancer
 Name:       mod_cluster
 Version:    1.2.6
-Release:    3%{?dist}
+Release:    4%{?dist}
 License:    LGPLv2
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
@@ -137,6 +137,9 @@ install -m 0644 %{SOURCE2} README
 %endif
 
 %changelog
+* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
 * Thu Jan 23 2014 Joe Orton <jorton@redhat.com> - 1.2.6-3
 - fix _httpd_mmn expansion in absence of httpd-devel
 
