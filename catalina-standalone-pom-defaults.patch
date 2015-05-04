@@ -1,0 +1,24 @@
+--- container/catalina-standalone/pom.xml	2015-05-04 10:47:26.423775003 +0200
++++ container/catalina-standalone/pom.xml.new	2015-05-04 10:47:22.486759507 +0200
+@@ -43,12 +43,12 @@
+         </dependency>
+         <dependency>
+             <groupId>org.apache.tomcat</groupId>
+-            <artifactId>catalina</artifactId>
++            <artifactId>tomcat-catalina</artifactId>
+             <scope>provided</scope>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.tomcat</groupId>
+-            <artifactId>coyote</artifactId>
++            <artifactId>tomcat-coyote</artifactId>
+             <scope>provided</scope>
+         </dependency>
+         <dependency>
+@@ -57,4 +57,4 @@
+             <scope>provided</scope>
+         </dependency>
+     </dependencies>
+-</project>
+\ No newline at end of file
++</project>

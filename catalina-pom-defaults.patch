@@ -1,0 +1,26 @@
+--- container/catalina/pom.xml	2015-05-04 09:54:10.269241213 +0200
++++ container/catalina/pom.xml.new	2015-05-04 10:01:56.803018596 +0200
+@@ -44,9 +44,9 @@
+     </dependencies>
+     <profiles>
+         <profile>
+-            <id>default</id>
++            <id>default-not-used</id>
+             <activation>
+-                <activeByDefault>true</activeByDefault>
++                <activeByDefault>false</activeByDefault>
+             </activation>
+             <dependencies>
+                 <dependency>
+@@ -80,9 +80,9 @@
+             </dependencies>
+         </profile>
+         <profile>
+-            <id>TC7</id>
++            <id>default</id>
+             <activation>
+-                <activeByDefault>false</activeByDefault>
++                <activeByDefault>true</activeByDefault>
+             </activation>
+             <dependencies>
+                 <dependency>
