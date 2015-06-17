@@ -17,7 +17,7 @@
 Summary:    Apache HTTP Server load balancer
 Name:       mod_cluster
 Version:    %{major_version}.%{minor_version}.%{micro_version}
-Release:    1%{?dist}
+Release:    6%{?dist}
 License:    LGPLv3
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
@@ -385,6 +385,9 @@ fi
 %endif
 
 %changelog
+* Wed Jun 17 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
 * Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
 
