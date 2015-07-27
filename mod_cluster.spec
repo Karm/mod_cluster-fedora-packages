@@ -90,7 +90,7 @@ Group:            Development/Libraries
 Provides:         %{name}-java-tomcat8 = %{version}
 Requires:         %{name}-java-catalina = %{version}-%{release}
 Requires:         jboss-logging
-Requires:         tomcat >= 8
+Requires:         tomcat >= 1:8
 %description java-tomcat8
 This package contains %{name} Java libs that can be used with Tomcat 8.
 
@@ -101,7 +101,7 @@ Group:            Development/Libraries
 Provides:         %{name}-java-tomcat7 = %{version}
 Requires:         %{name}-java-catalina = %{version}-%{release}
 Requires:         jboss-logging
-Requires:         tomcat >= 7
+Requires:         tomcat >= 1:7
 %description java-tomcat7
 This package contains %{name} Java libs that can be used with Tomcat 7.
 
