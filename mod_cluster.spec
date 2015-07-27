@@ -17,7 +17,7 @@
 Summary:    Apache HTTP Server load balancer
 Name:       mod_cluster
 Version:    %{major_version}.%{minor_version}.%{micro_version}
-Release:    6%{?dist}
+Release:    1%{?dist}
 License:    LGPLv3
 URL:        http://jboss.org/mod_cluster
 Group:      System Environment/Daemons
