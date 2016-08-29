@@ -13,7 +13,7 @@
 
 Name:          mod_cluster
 Version:       1.3.3
-Release:       4%{?dist}
+Release:       5%{?dist}
 Summary:       Apache HTTP Server dynamic load balancer with Wildfly and Tomcat libraries
 License:       LGPLv3
 URL:           http://modcluster.io/
@@ -119,7 +119,6 @@ This package contains the API documentation for %{name}.
 # Tomcat-ish
 %mvn_file :mod_cluster-container-catalina:jar: tomcat/mod_cluster-container-catalina 
 %mvn_file :mod_cluster-container-catalina-standalone:jar: tomcat/mod_cluster-container-catalina-standalone
-%mvn_file :mod_cluster-container-catalina-spi:jar: tomcat/mod_cluster-container-catalina-spi
 %mvn_file :mod_cluster-container-tomcat8:jar: tomcat/mod_cluster-container-tomcat8
 
 # Disable useless artifacts generation, package __noinstall do not work
@@ -196,6 +195,9 @@ install -pm 0644 %{SOURCE2} README
 %endif
 
 %changelog
+* Mon Aug 29 2016 gil cattaneo <puntogil@libero.it> 1.3.3-5
+- remove pom macro on unavailable mod_cluster-container-catalina-spi
+
 * Mon Aug 29 2016 gil cattaneo <puntogil@libero.it> 1.3.3-4
 - fix BR list
 - marked as noarch only the java stuff
