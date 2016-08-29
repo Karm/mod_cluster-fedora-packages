@@ -1,28 +1,40 @@
-= Enabling mod_cluster =
+= Apache HTTP Server load balancer =
+== Enabling mod_cluster ==
 
 Detailed information about configuring mod_cluster can be found here:
 
-    http://docs.jboss.org/mod_cluster/1.2.0/html/native.config.html
+    http://modcluster.io/documentation/#httpd-configuration
+
+with some additional FAQ on:
+
+    http://modcluster.io/faq/
+
+Last but not least, we kindly invite you to join the discussion on:
+
+    https://developer.jboss.org/en/mod_cluster
+
 
 == Disable proxy_balancer_module (required) ==
 
 To enable mod_cluster you need to make sure you have proxy_balancer_module disabled. Please comment out the loading of proxy_balancer_module in /etc/httpd/conf/httpd.conf:
 
-# LoadModule proxy_balancer_module
+    # LoadModule proxy_balancer_module
 
 == Enable mod_cluster modules (required) ==
 
 Next step is to load all required mod_cluster modules. Uncomment all LoadModule directives from
 /etc/httpd/conf.d/mod_cluster.conf file:
 
-LoadModule slotmem_module modules/mod_slotmem.so
-LoadModule proxy_cluster_module modules/mod_proxy_cluster.so
-LoadModule advertise_module modules/mod_advertise.so
-LoadModule manager_module modules/mod_manager.so
+    LoadModule proxy_cluster_module modules/mod_proxy_cluster.so
+    LoadModule cluster_slotmem_module modules/mod_cluster_slotmem.so
+    LoadModule manager_module modules/mod_manager.so
+    LoadModule advertise_module modules/mod_advertise.so
+
+Furthermore, mod_cluster needs proxy_module and proxy_ajp_module loaded for AJP transport to operate. Similarly it needs proxy_http_module loaded if one wishes to use HTTP transport instead of AJP.
 
 == Enabling mod_cluster manager (optional) ==
 
-Mod_cluster manager is a simple tool that displays useful information about the cluster. To enable it you need to load the mod_manager module and call SetHandler for the selected context:
+Mod_cluster manager is a simple monitoring and management tool that displays useful information about workers. To enable it you need to load the mod_manager module and call SetHandler for the selected context:
 
 <Location /mod_cluster_manager>
     SetHandler mod_cluster-manager
@@ -30,4 +42,20 @@ Mod_cluster manager is a simple tool that displays useful information about the 
 
 == Restart ==
 
-Make sure you restart the htttpd server after you apply these changes.
+Make sure you restart the httpd server after you apply these changes.
+
+= Tomcat workers =
+
+Simply add
+
+    <Listener className="org.jboss.modcluster.container.catalina.standalone.ModClusterListener" advertise="true" stickySession="true" stickySessionForce="false" stickySessionRemove="true" />
+
+to /etc/tomcat/server.xml
+
+= WildFly workers =
+
+mod_cluster is available as a subsystem in standalone-ha.xml. To enable it, set:
+
+    WILDFLY_CONFIG=standalone-ha.xml
+
+in /etc/wildfly/wildfly.conf

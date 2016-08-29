@@ -7,42 +7,42 @@
 %global namedreltag .Final
 %global namedversion %{version}%{?namedreltag}
 
-# Conditional build, set 0 to disable java support
-%define with_java 1
-
-Summary:    Apache HTTP load balancer
-Name:       mod_cluster
-Version:    1.2.6
-Release:    7%{?dist}
-License:    LGPLv2
-URL:        http://jboss.org/mod_cluster
-Group:      System Environment/Daemons
-
-Source:     https://github.com/modcluster/mod_cluster/archive/%{namedversion}.tar.gz
-Source1:    mod_cluster.conf
-Source2:    README.fedora
-
-Requires:      httpd >= 2.2.8
-Requires:      httpd-mmn = %{_httpd_mmn}
-
-%if %{with_java}
-BuildRequires: maven-local
-BuildRequires: maven-enforcer-plugin
-BuildRequires: jboss-parent
-BuildRequires: jpackage-utils
-BuildRequires: java-devel
-BuildRequires: jcip-annotations
-BuildRequires: jboss-logging-tools
-BuildRequires: jboss-logging
-BuildRequires: jboss-servlet-3.0-api
-BuildRequires: jboss-web
-BuildRequires: tomcat-lib
+%if 0%{?fedora}
+%bcond_with java
 %endif
 
-BuildRequires: httpd-devel >= 2.2.8
+Name:          mod_cluster
+Version:       1.3.3
+Release:       4%{?dist}
+Summary:       Apache HTTP Server dynamic load balancer with Wildfly and Tomcat libraries
+License:       LGPLv3
+URL:           http://modcluster.io/
+Source0:       https://github.com/modcluster/mod_cluster/archive/%{namedversion}/%{name}-%{namedversion}.tar.gz
+Source1:       mod_cluster.conf
+Source2:       README.fedora
+
+Patch0:        MODCLUSTER-528-CatalinaContext.java.patch
+
+Requires:      httpd >= 2.2.26
+Requires:      httpd-mmn = %{_httpd_mmn}
+
+BuildRequires: httpd-devel >= 2.2.26
 BuildRequires: autoconf
 BuildRequires: make
 BuildRequires: gcc
+
+%if %{without java}
+BuildRequires: maven-local
+BuildRequires: mvn(net.jcip:jcip-annotations)
+BuildRequires: mvn(org.apache.maven.plugins:maven-enforcer-plugin)
+BuildRequires: mvn(org.apache.tomcat:tomcat-catalina)
+BuildRequires: mvn(org.apache.tomcat:tomcat-coyote)
+BuildRequires: mvn(org.apache.tomcat:tomcat-util)
+BuildRequires: mvn(org.jboss:jboss-parent:pom:)
+BuildRequires: mvn(org.jboss.logging:jboss-logging)
+BuildRequires: mvn(org.jboss.logging:jboss-logging-processor)
+BuildRequires: mvn(org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec)
+%endif
 
 %description
 Mod_cluster is an httpd-based load balancer. Like mod_jk and mod_proxy,
@@ -55,88 +55,161 @@ HTTP methods, affectionately called the Mod-Cluster Management Protocol (MCMP).
 This additional feedback channel allows mod_cluster to offer a level of
 intelligence and granularity not found in other load balancing solutions.
 
-%if %{with_java}
+%if %{without java}
 %package java
-Summary:          Java bindings for %{name}
-Group:            Development/Libraries
+Summary:          Java libraries for %{name}
+BuildArch:        noarch
 
 %description java
-This package contains Java part of %{name}.
+This package contains %{name} core Java libraries
+that can be used with WildFly application server.
+
+%package java-tomcat8
+Summary:          Tomcat 8 Java libraries for %{name}
+Requires:         tomcat >= 1:8
+BuildArch:        noarch
+
+%description java-tomcat8
+This package contains %{name} Java libraries that can be used with Tomcat 8.
 
 %package javadoc
-Summary:          Javadocs for %{name}
+Summary:          Javadoc for %{name}
+BuildArch:        noarch
 
 %description javadoc
 This package contains the API documentation for %{name}.
 %endif
 
 %prep
-%setup -q -n mod_cluster-%{namedversion}
+%setup -q -n %{name}-%{namedversion}
+%patch0 -p0
 
-%if %{with_java}
+%if %{without java}
 %pom_disable_module demo
+%pom_disable_module tomcat6 container
+%pom_disable_module tomcat7 container
+%pom_disable_module jbossweb container
+
+%pom_remove_plugin :animal-sniffer-maven-plugin
+%pom_remove_plugin :versions-maven-plugin
+
+%pom_change_dep :jboss-servlet-api_3.0_spec org.apache.tomcat:tomcat-util container/catalina
+
+%pom_change_dep org.apache.tomcat: ::'${version.tomcat8}' container/catalina
+
+%pom_change_dep :catalina :tomcat-catalina:'${version.tomcat8}' container/catalina-standalone
+%pom_change_dep :coyote :tomcat-coyote:'${version.tomcat8}' container/catalina-standalone
+
+%pom_xpath_remove "pom:dependency[pom:type = 'test-jar']" container/tomcat8
+%pom_xpath_inject "pom:profile[pom:id = 'TC8']/pom:modules" "<module>catalina-standalone</module>"  container
+
+%pom_xpath_set "pom:profile[pom:id = 'TC7']/pom:id" TC8 container/catalina
+
+%mvn_package ":mod_cluster-core" java
+%mvn_package ":mod_cluster-container-spi" java
+
+%mvn_package ":mod_cluster-container-tomcat8" java-tomcat8
+%mvn_package ":mod_cluster-container-catalina-standalone" java-tomcat8
+%mvn_package ":mod_cluster-container-catalina" java-tomcat8
+
+# Wildfly/core lib
+%mvn_file :mod_cluster-core:jar: mod_cluster/mod_cluster-core tomcat/mod_cluster-core
+%mvn_file :mod_cluster-container-spi:jar: mod_cluster/mod_cluster-container-spi tomcat/mod_cluster-container-spi
+
+# Tomcat-ish
+%mvn_file :mod_cluster-container-catalina:jar: tomcat/mod_cluster-container-catalina 
+%mvn_file :mod_cluster-container-catalina-standalone:jar: tomcat/mod_cluster-container-catalina-standalone
+%mvn_file :mod_cluster-container-catalina-spi:jar: tomcat/mod_cluster-container-catalina-spi
+%mvn_file :mod_cluster-container-tomcat8:jar: tomcat/mod_cluster-container-tomcat8
+
+# Disable useless artifacts generation, package __noinstall do not work
+%pom_add_plugin org.apache.maven.plugins:maven-source-plugin . '
+<configuration>
+ <skipSource>true</skipSource>
+</configuration>'
+
+%mvn_package "org.jboss.mod_cluster:" java
+
 %endif
 
 %build
+
 CFLAGS="$RPM_OPT_FLAGS"
 export CFLAGS
 
-module_dirs=( advertise mod_manager mod_proxy_cluster mod_slotmem )
+module_dirs=( advertise mod_manager mod_proxy_cluster mod_cluster_slotmem )
 
 for dir in ${module_dirs[@]} ; do
     pushd native/${dir}
         sh buildconf
-        ./configure --libdir=%{_libdir} --with-apxs=%{_httpd_apxs}
+        %configure --libdir=%{_libdir} --with-apxs=%{_httpd_apxs}
         make %{?_smp_mflags}
     popd
 done
 
-%if %{with_java}
-%mvn_package "org.jboss.mod_cluster:" java
-
-# Build the AS7 required libs
-# Tests skipped because of lack of mockito library
-%mvn_build -f -- -P AS7
+%if %{without java}
+%mvn_build -s -f -- -PTC8
 %endif
 
 %install
 install -d -m 755 $RPM_BUILD_ROOT%{_libdir}/httpd/modules
 install -d -m 755 $RPM_BUILD_ROOT/etc/httpd/conf.d
 
-%if %{with_java}
-%mvn_install
-%endif
-
-module_dirs=( advertise mod_manager mod_proxy_cluster mod_slotmem )
-
+module_dirs=( advertise mod_manager mod_proxy_cluster mod_cluster_slotmem )
 for dir in ${module_dirs[@]} ; do
     pushd native/${dir}
         cp ./*.so $RPM_BUILD_ROOT%{_libdir}/httpd/modules
     popd
 done
 
+%if %{without java}
+%mvn_install
+
+ln -sf %{_javadir}/jboss-logging/jboss-logging.jar \
+ $RPM_BUILD_ROOT%{_javadir}/tomcat/jboss-logging.jar
+
+%endif
+
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/etc/httpd/conf.d/
 
-install -m 0644 %{SOURCE2} README
+install -pm 0644 %{SOURCE2} README
 
 %files
 %doc README
-%doc lgpl.txt
+%license lgpl.txt
 %{_libdir}/httpd/modules/mod_advertise.so
 %{_libdir}/httpd/modules/mod_manager.so
 %{_libdir}/httpd/modules/mod_proxy_cluster.so
-%{_libdir}/httpd/modules/mod_slotmem.so
+%{_libdir}/httpd/modules/mod_cluster_slotmem.so
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/*.conf
 
-%if %{with_java}
+%if %{without java}
 %files javadoc -f .mfiles-javadoc
-%doc lgpl.txt
+%license lgpl.txt
 
 %files java -f .mfiles-java
-%doc lgpl.txt
+%license lgpl.txt
+
+%files java-tomcat8 -f .mfiles-java-tomcat8
+%{_javadir}/tomcat/jboss-logging.jar
+%license lgpl.txt
 %endif
 
 %changelog
+* Mon Aug 29 2016 gil cattaneo <puntogil@libero.it> 1.3.3-4
+- fix BR list
+- marked as noarch only the java stuff
+
+* Mon Aug 29 2016 Michal Karm Babacek  <karm@fedoraproject.org> 1.3.3-3
+- Added mvn(..) BuildRequires for Tomcat libs instead of direct dependency on tomcat package
+
+* Mon Aug 29 2016 gil cattaneo <puntogil@libero.it> 1.3.3-2
+- fix pom macros
+
+* Mon Aug 29 2016 Michal Karm Babacek  <karm@fedoraproject.org> - 1.3.3-1
+- Upstream release 1.3.3.Final
+- Refactored spec file
+
 * Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 1.2.6-7
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 

@@ -1,0 +1,21 @@
+diff --git container/catalina/src/main/java/org/jboss/modcluster/container/catalina/CatalinaContext.java container/catalina/src/main/java/org/jboss/modcluster/container/catalina/CatalinaContext.java
+index 412d8cc..36f8f28 100644
+--- container/catalina/src/main/java/org/jboss/modcluster/container/catalina/CatalinaContext.java
++++ container/catalina/src/main/java/org/jboss/modcluster/container/catalina/CatalinaContext.java
+@@ -30,6 +30,7 @@ import javax.servlet.http.HttpSessionListener;
+ 
+ import org.apache.catalina.Pipeline;
+ import org.apache.catalina.Valve;
++import org.apache.catalina.LifecycleState;
+ import org.jboss.modcluster.container.Context;
+ import org.jboss.modcluster.container.Host;
+ 
+@@ -67,7 +68,7 @@ public class CatalinaContext implements Context {
+ 
+     @Override
+     public boolean isStarted() {
+-        return this.context.getAvailable();
++        return LifecycleState.STARTED.equals(this.context.getState());
+     }
+ 
+     @Override
