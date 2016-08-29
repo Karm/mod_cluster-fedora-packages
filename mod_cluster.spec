@@ -13,7 +13,7 @@
 
 Name:          mod_cluster
 Version:       1.3.3
-Release:       5%{?dist}
+Release:       6%{?dist}
 Summary:       Apache HTTP Server dynamic load balancer with Wildfly and Tomcat libraries
 License:       LGPLv3
 URL:           http://modcluster.io/
@@ -35,6 +35,7 @@ BuildRequires: gcc
 BuildRequires: maven-local
 BuildRequires: mvn(net.jcip:jcip-annotations)
 BuildRequires: mvn(org.apache.maven.plugins:maven-enforcer-plugin)
+BuildRequires: mvn(org.apache.maven.plugins:maven-release-plugin)
 BuildRequires: mvn(org.apache.tomcat:tomcat-catalina)
 BuildRequires: mvn(org.apache.tomcat:tomcat-coyote)
 BuildRequires: mvn(org.apache.tomcat:tomcat-util)
@@ -78,6 +79,21 @@ BuildArch:        noarch
 
 %description javadoc
 This package contains the API documentation for %{name}.
+
+%package container
+Summary:          Mod_cluster Container Parent POM
+BuildArch:        noarch
+
+%description container
+Mod_cluster Container Parent POM.
+
+%package parent
+Summary:          Mod_cluster Parent POM.
+BuildArch:        noarch
+
+%description parent
+Mod_cluster Parent POM.
+
 %endif
 
 %prep
@@ -105,18 +121,18 @@ This package contains the API documentation for %{name}.
 
 %pom_xpath_set "pom:profile[pom:id = 'TC7']/pom:id" TC8 container/catalina
 
+# Wildfly/core lib
 %mvn_package ":mod_cluster-core" java
 %mvn_package ":mod_cluster-container-spi" java
 
-%mvn_package ":mod_cluster-container-tomcat8" java-tomcat8
-%mvn_package ":mod_cluster-container-catalina-standalone" java-tomcat8
-%mvn_package ":mod_cluster-container-catalina" java-tomcat8
-
-# Wildfly/core lib
 %mvn_file :mod_cluster-core:jar: mod_cluster/mod_cluster-core tomcat/mod_cluster-core
 %mvn_file :mod_cluster-container-spi:jar: mod_cluster/mod_cluster-container-spi tomcat/mod_cluster-container-spi
 
 # Tomcat-ish
+%mvn_package ":mod_cluster-container-tomcat8" java-tomcat8
+%mvn_package ":mod_cluster-container-catalina-standalone" java-tomcat8
+%mvn_package ":mod_cluster-container-catalina" java-tomcat8
+
 %mvn_file :mod_cluster-container-catalina:jar: tomcat/mod_cluster-container-catalina 
 %mvn_file :mod_cluster-container-catalina-standalone:jar: tomcat/mod_cluster-container-catalina-standalone
 %mvn_file :mod_cluster-container-tomcat8:jar: tomcat/mod_cluster-container-tomcat8
@@ -126,8 +142,6 @@ This package contains the API documentation for %{name}.
 <configuration>
  <skipSource>true</skipSource>
 </configuration>'
-
-%mvn_package "org.jboss.mod_cluster:" java
 
 %endif
 
@@ -152,7 +166,7 @@ done
 
 %install
 install -d -m 755 $RPM_BUILD_ROOT%{_libdir}/httpd/modules
-install -d -m 755 $RPM_BUILD_ROOT/etc/httpd/conf.d
+install -d -m 755 $RPM_BUILD_ROOT%{_httpd_confdir}
 
 module_dirs=( advertise mod_manager mod_proxy_cluster mod_cluster_slotmem )
 for dir in ${module_dirs[@]} ; do
@@ -169,7 +183,7 @@ ln -sf %{_javadir}/jboss-logging/jboss-logging.jar \
 
 %endif
 
-cp -a %{SOURCE1} $RPM_BUILD_ROOT/etc/httpd/conf.d/
+cp -a %{SOURCE1} $RPM_BUILD_ROOT%{_httpd_confdir}/
 
 install -pm 0644 %{SOURCE2} README
 
@@ -183,20 +197,27 @@ install -pm 0644 %{SOURCE2} README
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/*.conf
 
 %if %{without java}
-%files javadoc -f .mfiles-javadoc
-%license lgpl.txt
-
 %files java -f .mfiles-java
 %license lgpl.txt
 
 %files java-tomcat8 -f .mfiles-java-tomcat8
 %{_javadir}/tomcat/jboss-logging.jar
+
+%files javadoc -f .mfiles-javadoc
+%license lgpl.txt
+
+%files container -f .mfiles-mod_cluster-container
+%license lgpl.txt
+
+%files parent -f .mfiles-mod_cluster-parent
 %license lgpl.txt
 %endif
 
 %changelog
-* Mon Aug 29 2016 gil cattaneo <puntogil@libero.it> 1.3.3-5
-- remove pom macro on unavailable mod_cluster-container-catalina-spi
+* Mon Aug 30 2016 gil cattaneo <puntogil@libero.it> 1.3.3-5
+- remove useless pom macros
+- add subpackages for parent POMs
+- use custom _httpd_confdir macro
 
 * Mon Aug 29 2016 gil cattaneo <puntogil@libero.it> 1.3.3-4
 - fix BR list
